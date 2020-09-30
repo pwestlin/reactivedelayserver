@@ -30,4 +30,20 @@ internal class DelayControllerTesttest {
 
         assertThat(result).isGreaterThanOrEqualTo(delayTime)
     }
+
+    @Test
+    fun `delay a while with applicationName`() {
+        val applicationName = "Foo"
+        val delayTime: Long = 10
+
+        val result = webClient.get()
+            .uri("/$applicationName/$delayTime")
+            .exchange()
+            .expectStatus().isOk
+            .expectHeader().contentType(MediaType.APPLICATION_JSON)
+            .returnResult<ApplicationDelay>().responseBody.blockFirst()!!
+
+        assertThat(result.applicationName).isEqualTo(applicationName)
+        assertThat(result.actualDelayTime).isGreaterThanOrEqualTo(delayTime)
+    }
 }
