@@ -1,0 +1,7 @@
+
+logging:
+  level:
+    nu.westlin.reactivedelayserver: INFO
+    root: WARN
+  file:
+    name: logs/application.log

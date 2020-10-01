@@ -29,9 +29,15 @@ class DelayController {
 
     @GetMapping("/{applicationName}/{delayTime}")
     suspend fun slowCall(@PathVariable applicationName: String, @PathVariable delayTime: Long): ApplicationDelay {
-        logger.info("$applicationName - delaying $delayTime ms ")
-        return ApplicationDelay(applicationName, measureTimeMillis { delay(delayTime) })
+        try {
+            logger.info("$applicationName - delaying $delayTime ms - start")
+            return ApplicationDelay(applicationName, measureTimeMillis { delay(delayTime) })
+        } finally {
+            logger.info("$applicationName - delaying $delayTime ms - done")
+        }
     }
 }
 
 data class ApplicationDelay(val applicationName: String, val actualDelayTime: Long)
+
+

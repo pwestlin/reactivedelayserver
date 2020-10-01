@@ -1,3 +1,5 @@
+@file:Suppress("NonAsciiCharacters", "PropertyName")
+
 package nu.westlin.reactivedelayserver
 
 import org.assertj.core.api.Assertions.assertThat
@@ -45,5 +47,125 @@ internal class DelayControllerTesttest {
 
         assertThat(result.applicationName).isEqualTo(applicationName)
         assertThat(result.actualDelayTime).isGreaterThanOrEqualTo(delayTime)
+    }
+}
+
+
+/*
+Målet är att kunna skapa en person med minst en adress mha följande DSL:
+
+person {
+    förnamn = "Peter"
+    efternamn = "Plutt"
+
+    adress {
+        gatuadress = "Räservägen 1"
+        postnummer = "77611"
+        postadress = "Räsermora"
+    }
+
+    adress {
+        etikett = "Arbete"
+        gatuadress = "Lantmäterigatan 1"
+        postnummer = "12341"
+        postadress = "Gäflä"
+    }
+}
+ */
+
+data class Adress(
+    val etikett: String? = null,
+    val gatuadress: String,
+    val postnummer: String,
+    val postadress: String
+)
+
+data class Person(
+    val förnamn: String,
+    val efternamn: String,
+    val adresser: List<Adress>
+)
+
+class AdressBuilder {
+    var etikett: String? = null
+    lateinit var gatuadress: String
+    lateinit var postnummer: String
+    lateinit var postadress: String
+
+    fun build(): Adress {
+        return Adress(
+            etikett = etikett,
+            gatuadress = gatuadress,
+            postnummer = postnummer,
+            postadress = postadress
+        )
+    }
+}
+
+class PersonBuilder {
+    lateinit var förnamn: String
+    lateinit var efternamn: String
+    val adresser = ArrayList<Adress>()
+
+    fun adress(block: AdressBuilder.() -> Unit) {
+        adresser.add(AdressBuilder().apply(block).build())
+    }
+
+    fun build(): Person {
+        check(adresser.isNotEmpty()) { "En person måste ha minst en adress" }
+
+        return Person(
+            förnamn = förnamn,
+            efternamn = efternamn,
+            adresser = adresser,
+        )
+    }
+}
+
+fun person(block: PersonBuilder.() -> Unit): Person {
+    return PersonBuilder().apply(block).build()
+}
+
+class PersonDSLTest {
+
+    @Test
+    fun `DSL för Person`() {
+        val person = person {
+            förnamn = "Peter"
+            efternamn = "Plutt"
+
+            adress {
+                gatuadress = "Räservägen 1"
+                postnummer = "77611"
+                postadress = "Räsermora"
+            }
+
+            adress {
+                etikett = "Arbete"
+                gatuadress = "Lantmäterigatan 1"
+                postnummer = "12341"
+                postadress = "Gäflä"
+            }
+        }
+
+        assertThat(person).isEqualTo(
+            Person(
+                förnamn = "Peter",
+                efternamn = "Plutt",
+                adresser = listOf(
+                    Adress(
+                        gatuadress = "Räservägen 1",
+                        postnummer = "77611",
+                        postadress = "Räsermora"
+                    ),
+                    Adress(
+                        etikett = "Arbete",
+                        gatuadress = "Lantmäterigatan 1",
+                        postnummer = "12341",
+                        postadress = "Gäflä"
+                    )
+                )
+            )
+        )
     }
 }
